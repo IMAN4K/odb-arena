@@ -28,6 +28,8 @@
 #include <chrono>
 #include <boost/uuid/uuid.hpp>
 #include <rapidjson/document.h>
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/prettywriter.h>
 
 enum class Gender : bool {
     Male, Female
@@ -47,7 +49,28 @@ struct Student final {
     rapidjson::Document data;
 };
 
-inline std::ostream& operator<<(std::ostream& os, const Student& arg) {
+inline std::ostream& operator<<(std::ostream& os, const Student& item) {
+    std::string data("{}");
+
+    if (!item.data.IsNull()) {
+        rapidjson::StringBuffer buffer;
+        rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
+        if (item.data.Accept(writer)) {
+            data = std::string(buffer.GetString(), buffer.GetSize());
+        }
+    }
+
+    os << "Student("
+       << "uid:" << std::string(reinterpret_cast<const char*>(item.uid.data), reinterpret_cast<const char*>(item.uid.data) + sizeof (item.uid.data)) << ", "
+       << "id: " << item.id << ", "
+       << "name: " << item.name << ", "
+       << "age: " << item.age << ", "
+       << "gender: " << (static_cast<bool>(item.gender) ? "Male" : "Female") << ", "
+       << "score: " << item.score << ", "
+       << "lastUpdate" << item.lastUpdate.count() << ", "
+       << "data: " << data << ")"
+       << std::endl
+       ;
     return os;
 }
 
